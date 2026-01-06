@@ -9,9 +9,19 @@
 	"compatibility_date": "2025-03-03",
     "d1_databases": [
         {
-          "binding": "DB",
+          "binding": "MCW_DB",
           "database_name": "mychoiceworld",
           "database_id": "1918a5a5-8611-4b29-ac90-fa53db1c6fcb"
+        },
+        {
+          "binding": "UTILITY_DB",
+          "database_name": "utility",
+          "database_id": "6daa3f93-ac88-4c7a-8077-e6b535382d2b"
+        },
+        {
+          "binding": "CATALOG_DB",
+          "database_name": "catalog",
+          "database_id": "60ace0fe-4505-49dc-be37-5fa1537e05ba"
         }
     ],
     "secrets_store_secrets": [

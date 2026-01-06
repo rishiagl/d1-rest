@@ -3,7 +3,9 @@ import { cors } from "hono/cors";
 import { handleRest } from './rest';
 
 export interface Env {
-    DB: D1Database;
+    MCW_DB: D1Database;
+    UTILITY_DB: D1Database;
+    CATALOG_DB: D1Database;
     SECRET: SecretsStoreSecret;
 }
 
@@ -63,8 +65,16 @@ export default {
         app.all('/rest/*', authMiddleware, handleRest);
 
         // Execute a raw SQL statement with parameters with this route
-        app.post('/query', authMiddleware, async (c) => {
+        app.post('/query/*', authMiddleware, async (c) => {
             try {
+                const url = new URL(c.req.url);
+                const pathParts = url.pathname.split('/').filter(Boolean);
+    
+                if (pathParts.length < 2) {
+                    return c.json({ error: 'Invalid path. Expected format: /rest/{db_name}' }, 400);
+                }
+
+                const db_name = pathParts[1];
                 const body = await c.req.json();
                 const { query, params } = body;
 
@@ -73,11 +83,25 @@ export default {
                 }
 
                 // Execute the query against D1 database
-                const results = await env.DB.prepare(query)
-                    .bind(...(params || []))
-                    .all();
-
-                return c.json(results);
+                switch (db_name) {
+                    case 'mcw_db':
+                        const results = await env.MCW_DB.prepare(query)
+                        .bind(...(params || []))
+                        .all();
+                        return c.json(results);
+                    case 'utility_db':
+                        const utilityResults = await env.UTILITY_DB.prepare(query)
+                        .bind(...(params || []))
+                        .all();
+                        return c.json(utilityResults);
+                    case 'catalog_db':
+                        const catalogResults = await env.CATALOG_DB.prepare(query)
+                        .bind(...(params || []))
+                        .all();
+                        return c.json(catalogResults);
+                    default:
+                        return c.json({ error: 'Unknown database name' }, 400);
+                }
             } catch (error: any) {
                 return c.json({ error: error.message }, 500);
             }
